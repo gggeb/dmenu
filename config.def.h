@@ -1,7 +1,18 @@
 /* See LICENSE file for copyright and license details. */
 /* Default settings; can be overriden by command line. */
 
-static int topbar = 1;                      /* -b  option; if 0, dmenu appears at bottom     */
+/* 0 = left, 1 = centre, 2 = right */
+static unsigned int horizontal_alignment = 0;
+/* 0 = top, 1 = centre, 2 = bottom */
+static unsigned int vertical_alignment = 0;
+
+/* If 0, dmenu will be set to screen width */
+static unsigned int menu_width = 0;
+/* If less than font height + 2, will default to font height + 2 */
+static unsigned int line_height = 0;
+
+static unsigned int disable_cursor = 0;
+
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
 	"monospace:size=10"

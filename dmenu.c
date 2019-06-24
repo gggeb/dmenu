@@ -145,10 +145,12 @@ drawmenu(void)
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
 
-	curpos = TEXTW(text) - TEXTW(&text[cursor]);
-	if ((curpos += lrpad / 2 - 1) < w) {
-		drw_setscheme(drw, scheme[SchemeNorm]);
-		drw_rect(drw, x + curpos, 2, 2, bh - 4, 1, 0);
+	if (disable_cursor == 0) {
+		curpos = TEXTW(text) - TEXTW(&text[cursor]);
+		if ((curpos += lrpad / 2 - 1) < w) {
+			drw_setscheme(drw, scheme[SchemeNorm]);
+			drw_rect(drw, x + curpos, 2, 2, bh - 4, 1, 0);
+		}
 	}
 
 	if (lines > 0) {
@@ -608,7 +610,11 @@ setup(void)
 	utf8 = XInternAtom(dpy, "UTF8_STRING", False);
 
 	/* calculate menu geometry */
-	bh = drw->fonts->h + 2;
+	if (drw->fonts->h + 2 > line_height) {
+		bh = drw->fonts->h + 2;
+	} else {
+		bh = line_height;
+	}
 	lines = MAX(lines, 0);
 	mh = (lines + 1) * bh;
 #ifdef XINERAMA
@@ -647,9 +653,35 @@ setup(void)
 		if (!XGetWindowAttributes(dpy, parentwin, &wa))
 			die("could not get embedding window attributes: 0x%lx",
 			    parentwin);
-		x = 0;
-		y = topbar ? 0 : wa.height - mh;
-		mw = wa.width;
+		
+		if (menu_width <= 0) {
+			mw = wa.width;
+		} else {
+			mw = menu_width;
+		}
+
+		switch (horizontal_alignment) {
+			case 1:
+				x = (wa.width - mw) / 2;
+				break;
+			case 2:
+				x = wa.width - mw;
+				break;
+			default:
+				x = 0;
+				break;
+		}
+
+		switch (vertical_alignment) {
+			case 1:
+				y = (wa.height - mh) / 2;
+				break;
+			case 2:
+				y = wa.height - mh;
+				break;
+			default:
+				y = 0;
+		}
 	}
 	promptw = (prompt && *prompt) ? TEXTW(prompt) - lrpad / 4 : 0;
 	inputw = MIN(inputw, mw/3);
@@ -689,8 +721,9 @@ setup(void)
 static void
 usage(void)
 {
-	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
-	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
+	fputs("usage: dmenu [-dfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+	      "             [-ha alignment] [-va alignment] [-wi width] [-lh height]\n"
+		  "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
 	exit(1);
 }
 
@@ -705,14 +738,14 @@ main(int argc, char *argv[])
 		if (!strcmp(argv[i], "-v")) {      /* prints version information */
 			puts("dmenu-"VERSION);
 			exit(0);
-		} else if (!strcmp(argv[i], "-b")) /* appears at the bottom of the screen */
-			topbar = 0;
-		else if (!strcmp(argv[i], "-f"))   /* grabs keyboard before reading stdin */
+		} else if (!strcmp(argv[i], "-f"))   /* grabs keyboard before reading stdin */
 			fast = 1;
 		else if (!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
 			fstrncmp = strncasecmp;
 			fstrstr = cistrstr;
-		} else if (i + 1 == argc)
+		} else if (!strcmp(argv[i], "-d"))   /* disables cursor */
+			disable_cursor = 1;
+		else if (i + 1 == argc)
 			usage();
 		/* these options take one argument */
 		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
@@ -723,6 +756,14 @@ main(int argc, char *argv[])
 			prompt = argv[++i];
 		else if (!strcmp(argv[i], "-fn"))  /* font or font set */
 			fonts[0] = argv[++i];
+		else if (!strcmp(argv[i], "-ha"))  /* horizontal alignment */
+			horizontal_alignment = atoi(argv[++i]);
+		else if (!strcmp(argv[i], "-va"))  /* vertical alignment */
+			vertical_alignment = atoi(argv[++i]);
+		else if (!strcmp(argv[i], "-wi"))  /* menu width */
+			menu_width = atoi(argv[++i]);
+		else if (!strcmp(argv[i], "-lh"))  /* line height */
+			line_height = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-nb"))  /* normal background color */
 			colors[SchemeNorm][ColBg] = argv[++i];
 		else if (!strcmp(argv[i], "-nf"))  /* normal foreground color */

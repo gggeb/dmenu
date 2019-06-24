@@ -37,8 +37,8 @@ is a script used by
 which lists programs in the user's $PATH and runs the result in their $SHELL.
 .SH OPTIONS
 .TP
-.B \-b
-dmenu appears at the bottom of the screen.
+.B \-d
+disables dmenu's cursor.
 .TP
 .B \-f
 dmenu grabs the keyboard before reading stdin if not reading from a tty. This
@@ -56,6 +56,18 @@ from 0.
 .TP
 .BI \-p " prompt"
 defines the prompt to be displayed to the left of the input field.
+.TP
+.BI \-ha " alignment"
+dmenu is aligned horizontally accordingly. 0 = left, 1 = centre, 2 = right.
+.TP
+.BI \-va " alignment"
+dmenu is aligned vertically accordingly. 0 = top, 1 = centre, 2 = bottom.
+.TP
+.BI \-wi " width"
+defines dmenu's width.
+.TP
+.BI \-lh " height"
+defines dmenu's line height.
 .TP
 .BI \-fn " font"
 defines the font or font set used.
