@@ -13,6 +13,8 @@ static unsigned int line_height = 0;
 
 static unsigned int disable_cursor = 0;
 
+static unsigned int border_width = 1;
+
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
 	"monospace:size=10"
